@@ -1,0 +1,40 @@
+{
+  "company1": {
+    "link": "https://somelink.co.il",
+    "name": "benini",
+    "crawling_status": 3,
+    "is_deleted": false,
+    "is_blacklisted": true,
+    "last_crawled": "02/23/2022, 8:32:42 PM",
+    "employees_min": 10,
+    "employees_max": 120
+  },
+  "company2": {
+    "link": "https://somelink.co.il",
+    "name": "lightrix",
+    "crawling_status": 3,
+    "is_deleted": false,
+    "is_blacklisted": true,
+    "last_crawled": "01/23/2022, 8:32:42 PM",
+    "employees_min": 3,
+    "employees_max": 10
+  },
+  "contentItem1": {
+    "link": "https://someothercoollink.co.il",
+    "name": "item123",
+    "crawling_status": 5,
+    "is_deleted": true,
+    "is_blacklisted": false,
+    "last_crawled": "01/23/2022, 8:32:42 PM"
+  },
+  "webinar": {
+    "link": "https://webinarsareawesome.co.il",
+    "name": "super duper webos",
+    "crawling_status": 5,
+    "is_deleted": false,
+    "is_blacklisted": false,
+    "last_crawled": "01/23/2022, 8:32:42 PM",
+    "language": "he",
+    "start_date": "01/20/2026, 12:00:00 PM"
+  }
+}
