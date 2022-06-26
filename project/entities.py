@@ -1,3 +1,4 @@
+from abc import abstractmethod, ABC
 from datetime import datetime
 from enum import IntEnum
 from typing import Optional
@@ -10,8 +11,11 @@ ENTITY_TYPES = [
     "ContentItem",
     "CompanyForEvent",
     "CompanyForWebinar",
-    "CompanyCompetitor"
+    "CompanyCompetitor",
 ]
+
+class Entity:
+    pass
 
 
 class CRAWLING_STATUSES(IntEnum):
@@ -34,15 +38,25 @@ class CRAWLING_STATUSES(IntEnum):
     UNCRAWLABLE = 16
 
 
-class CrawlableEntity:
+class CrawlableEntity(Entity, ABC):
+
     link: str
     name: str
-    crawling_status: int # from CRAWLING_STATUSES
+    crawling_status: int  # from CRAWLING_STATUSES
     is_deleted: bool
     is_blacklisted: bool
     last_crawled: Optional[datetime]
 
-    def __init__(self, *, link, name, crawling_status=CRAWLING_STATUSES.NOT_CRAWLED, is_deleted=False, is_blacklisted=False, last_crawled=None):
+    def __init__(
+        self,
+        *,
+        link,
+        name,
+        crawling_status=CRAWLING_STATUSES.NOT_CRAWLED,
+        is_deleted=False,
+        is_blacklisted=False,
+        last_crawled=None
+    ):
         self.link = link
         self.name = name
         self.crawling_status = crawling_status
@@ -57,7 +71,9 @@ class Event(CrawlableEntity):
     description: Optional[str]
     location: Optional[str]
 
-    def __init__(self, *, start_date, description=None, location=None, end_date=None, **kwargs):
+    def __init__(
+        self, *, start_date, description=None, location=None, end_date=None, **kwargs
+    ):
         super().__init__(**kwargs)
         self.start_date = start_date
         self.end_date = end_date
@@ -97,7 +113,7 @@ class ContentItem(CrawlableEntity):
         self.snippet = snippet
 
 
-class CompanyForEvent:
+class CompanyForEvent(Entity):
     event: Event
     company: Company
     is_deleted: bool
@@ -110,7 +126,7 @@ class CompanyForEvent:
         self.is_deleted = is_deleted
 
 
-class CompanyForWebinar:
+class CompanyForWebinar(Entity):
     webinar: Webinar
     company: Company
     is_deleted: bool
@@ -123,7 +139,7 @@ class CompanyForWebinar:
         self.is_deleted = is_deleted
 
 
-class CompanyCompetitor:
+class CompanyCompetitor(Entity):
     company: Company
     competitor: Company
     is_deleted: bool
@@ -132,4 +148,3 @@ class CompanyCompetitor:
         self.company = company
         self.competitor = competitor
         self.is_deleted = is_deleted
-
