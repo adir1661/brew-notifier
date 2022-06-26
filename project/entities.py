@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import IntEnum
 from typing import Optional
 
 
@@ -13,7 +14,7 @@ ENTITY_TYPES = [
 ]
 
 
-class CRAWLING_STATUSES:
+class CRAWLING_STATUSES(IntEnum):
     NOT_CRAWLED = 0
     ERROR_REQUESTING_LINK = 1
     UPDATING_LINK = 2
