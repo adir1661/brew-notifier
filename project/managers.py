@@ -68,10 +68,6 @@ class EntityManager:
 class EventManager(EntityManager):
     condition_callbacks = all_conditions
 
-    # def get_message(self):
-    #     name = self.get_notified_entity().name
-    #     return f"event {name} has changed"
-
     def get_notified_entity(self) -> CrawlableEntity:
         return self.entity
 
@@ -82,10 +78,6 @@ class CompanyManager(EntityManager):
         ConditionCallbacks.check_text_crawling_status_changed,
     ]
 
-    # def get_message(self):
-    #     name = self.get_notified_entity().name
-    #     return f"company {name} has changed"
-
     def get_notified_entity(self) -> CrawlableEntity:
         return self.entity
 
@@ -93,19 +85,12 @@ class CompanyManager(EntityManager):
 class WebinarManager(EntityManager):
     condition_callbacks = all_conditions
 
-    # def get_message(self):
-    #     name = self.get_notified_entity().name
-    #     return f"webinar {name} has changed"
-
     def get_notified_entity(self) -> CrawlableEntity:
         return self.entity
 
 
 class ContentItemManager(EntityManager):
     condition_callbacks = all_conditions
-
-    # def get_message(self):
-    #     pass
 
     def get_notified_entity(self) -> CrawlableEntity:
         return self.entity.company
@@ -117,9 +102,6 @@ class CompanyForEventManager(EntityManager):
         ConditionCallbacks.check_is_blacklisted_changed,
     ]
 
-    # def get_message(self):
-    #     pass
-
     def get_notified_entity(self) -> CrawlableEntity:
         return self.entity.event
 
@@ -130,9 +112,6 @@ class CompanyForWebinarManager(EntityManager):
         ConditionCallbacks.check_is_blacklisted_changed,
     ]
 
-    # def get_message(self):
-    #     pass
-
     def get_notified_entity(self) -> CrawlableEntity:
         return self.entity.webinar
 
@@ -141,9 +120,6 @@ class CompanyCompetitorManager(EntityManager):
     condition_callbacks = created_deleted + [
         ConditionCallbacks.check_is_deleted_changed
     ]
-
-    # def get_message(self):
-    #     pass
 
     def get_notified_entity(self) -> CrawlableEntity:
         return self.entity.company

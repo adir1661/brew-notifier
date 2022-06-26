@@ -1,7 +1,7 @@
 {
   "company1": {
     "link": "https://somelink.co.il",
-    "name": "benini",
+    "name": "alphabet",
     "crawling_status": 3,
     "is_deleted": false,
     "is_blacklisted": true,
@@ -21,7 +21,7 @@
   },
   "contentItem1": {
     "link": "https://someothercoollink.co.il",
-    "name": "item123",
+    "name": "content item 123",
     "crawling_status": 5,
     "is_deleted": true,
     "is_blacklisted": false,
@@ -29,7 +29,7 @@
   },
   "webinar": {
     "link": "https://webinarsareawesome.co.il",
-    "name": "super duper webos",
+    "name": "webinar 123",
     "crawling_status": 5,
     "is_deleted": false,
     "is_blacklisted": false,
