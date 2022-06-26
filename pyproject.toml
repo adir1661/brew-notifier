@@ -7,9 +7,16 @@ authors = ["Adir <adir@gebrew.com>"]
 [tool.poetry.dependencies]
 python = "^3.8"
 Django = "^4.0.5"
+pytest = "^7.1.2"
+brew-common = {version = "^1.4.12", source = "brew"}
 
 [tool.poetry.dev-dependencies]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[[tool.poetry.source]]
+name = "brew"
+url = "https://brew-707084527875.d.codeartifact.us-east-1.amazonaws.com/pypi/brew/simple"
+secondary = true

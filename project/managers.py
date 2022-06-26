@@ -3,7 +3,6 @@ from typing import Callable, List, Dict
 
 from project.entities import CRAWLING_STATUSES, Entity, CrawlableEntity
 
-
 def check_deleted(entity_obj, original_entity_obj):
     return entity_obj is None
 
