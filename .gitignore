@@ -4,3 +4,5 @@
 dist
 
 notifier.log
+
+*.sqlite3
