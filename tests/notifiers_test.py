@@ -52,6 +52,7 @@ def db():
 
 
 class TestNotifier:
+    # todo: split the tests to test cases based on actions and not entity.
     def test_company(self, db):
         """test company notifier"""
         company1 = deepcopy(db.original_company1)

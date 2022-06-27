@@ -14,6 +14,7 @@ ENTITY_TYPES = [
     "CompanyCompetitor",
 ]
 
+
 class Entity:
     pass
 

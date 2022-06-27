@@ -3,6 +3,9 @@ from typing import Callable, List, Dict
 
 from project.entities import CRAWLING_STATUSES, Entity, CrawlableEntity
 
+
+# todo: there is a chance that many fields repeatedly will be requested change notification,
+#  find a way to take this into account
 def check_deleted(entity_obj, original_entity_obj):
     return entity_obj is None
 
@@ -55,6 +58,7 @@ class EntityManager:
         entity = self.get_notified_entity()
         return f"{entity.__class__.__name__} {entity.name} has changed"
 
+    # todo: to avoid potential bugs use the entity from the instance fields.
     def test_conditions(self, entity_obj: Entity, original_entity_obj: Entity):
         return any(
             cb(entity_obj, original_entity_obj) for cb in self.condition_callbacks

@@ -39,6 +39,9 @@ def notification_reducer(
     )
     if entity_manager.test_conditions(entity_obj, original_entity_obj):
         notified_entity = entity_manager.get_notified_entity()
+
+        # todo: implement a generic way to activate 3rd party actions with list or something similar.
         if options.get("log_message"):
             default_logger.info(entity_manager.get_message())
+
         return notified_entity
