@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 import logging
 from project.managers import EntityManagers, EntityManager
 from project.entities import Entity
@@ -6,8 +6,13 @@ from brew_common.brew_logger.decorators import logger
 
 
 # should move to app settings.
+from project.subscribers.base_subscriber import SubscriberClass
+from project.subscribers.console import ConsoleSubscriber
+
 default_logger = logging.getLogger("default")
 default_logger.setLevel(logging.INFO)
+
+Subscribers: List[SubscriberClass] = [ConsoleSubscriber]
 
 formatter = logging.Formatter("%(asctime)s:%(name)s:%(message)s")
 
@@ -35,13 +40,12 @@ def notification_reducer(
 ):
     options = options or {}
     entity_manager: EntityManager = EntityManagers[entity_type](
-        entity=entity_obj or original_entity_obj
+        entity=entity_obj, original_entity_obj=original_entity_obj
     )
-    if entity_manager.test_conditions(entity_obj, original_entity_obj):
+    if entity_manager.test_conditions():
         notified_entity = entity_manager.get_notified_entity()
-
-        # todo: implement a generic way to activate 3rd party actions with list or something similar.
-        if options.get("log_message"):
-            default_logger.info(entity_manager.get_message())
-
-        return notified_entity
+        for subscriber_class in Subscribers:
+            subscriber = subscriber_class(notified_entity)
+            subscriber.notify(options=options)
+        return True
+    return False
