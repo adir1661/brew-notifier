@@ -7,41 +7,37 @@ from project.entities import CRAWLING_STATUSES, Entity, CrawlableEntity
 
 
 class TrackFields(Enum):
-    IS_DELETED = 'is_deleted'
-    IS_BLACKLISTED = 'is_blacklisted'
-    
-    
+    IS_DELETED = "is_deleted"
+    IS_BLACKLISTED = "is_blacklisted"
+
+
 def check_field_changed(entity_obj, original_entity_obj, *, track_field: TrackFields):
     field = getattr(entity_obj, track_field.value)
     original_field = getattr(original_entity_obj, track_field.value)
     return field != original_field
 
 
-def check_deleted(entity_obj, original_entity_obj):
-    return entity_obj is None
+class ConditionFunctions:
+    @staticmethod
+    def check_deleted(entity_obj, original_entity_obj):
+        return entity_obj is None
+
+    @staticmethod
+    def check_created(entity_obj, original_entity_obj):
+        return original_entity_obj is None
+
+    @staticmethod
+    def check_text_crawling_status_changed(entity_obj, original_entity_obj):
+        return (
+            entity_obj.crawling_status != original_entity_obj.crawling_status
+            and entity_obj.crawling_status
+            in [CRAWLING_STATUSES.TEXT_ANALYZED, CRAWLING_STATUSES.TEXT_UPLOADED]
+        )
 
 
-def check_created(entity_obj, original_entity_obj):
-    return original_entity_obj is None
-
-
-def check_text_crawling_status_changed(entity_obj, original_entity_obj):
-    return (
-        entity_obj.crawling_status != original_entity_obj.crawling_status
-        and entity_obj.crawling_status
-        in [CRAWLING_STATUSES.TEXT_ANALYZED, CRAWLING_STATUSES.TEXT_UPLOADED]
-    )
-
-
-class ConditionCallbacks:
-    check_deleted = check_deleted
-    check_created = check_created
-    check_text_crawling_status_changed = check_text_crawling_status_changed
-
-
-created_deleted = [ConditionCallbacks.check_created, ConditionCallbacks.check_deleted]
+created_deleted = [ConditionFunctions.check_created, ConditionFunctions.check_deleted]
 all_conditions = created_deleted + [
-    ConditionCallbacks.check_text_crawling_status_changed,
+    ConditionFunctions.check_text_crawling_status_changed,
 ]
 
 
@@ -64,7 +60,7 @@ class EntityManager(metaclass=EntityManagerClass):
     condition_functions: List[Callable] = None
     track_fields: List[TrackFields] = None
 
-    def __init__(self, *, entity: Entity,original_entity_obj: Entity):
+    def __init__(self, *, entity: Entity, original_entity_obj: Entity):
         self.entity = entity
         self.original_entity_obj = original_entity_obj
 
@@ -92,7 +88,7 @@ class EventManager(EntityManager):
 
 class CompanyManager(EntityManager):
     condition_functions = created_deleted + [
-        ConditionCallbacks.check_text_crawling_status_changed,
+        ConditionFunctions.check_text_crawling_status_changed,
     ]
     track_fields = [TrackFields.IS_DELETED]
 
@@ -104,7 +100,6 @@ class WebinarManager(EntityManager):
     condition_functions = all_conditions
     track_fields = [TrackFields.IS_DELETED, TrackFields.IS_BLACKLISTED]
 
-
     def get_notified_entity(self) -> CrawlableEntity:
         return self.available_entity
 
@@ -112,7 +107,6 @@ class WebinarManager(EntityManager):
 class ContentItemManager(EntityManager):
     condition_functions = all_conditions
     track_fields = [TrackFields.IS_DELETED, TrackFields.IS_BLACKLISTED]
-
 
     def get_notified_entity(self) -> CrawlableEntity:
         return self.available_entity.company
