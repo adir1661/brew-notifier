@@ -1,21 +1,28 @@
 from abc import abstractmethod
+from enum import Enum
+from functools import partial
 from typing import Callable, List, Dict
 
 from project.entities import CRAWLING_STATUSES, Entity, CrawlableEntity
 
 
-# todo: there is a chance that many fields repeatedly will be requested change notification,
-#  find a way to take this into account
+class TrackFields(Enum):
+    IS_DELETED = 'is_deleted'
+    IS_BLACKLISTED = 'is_blacklisted'
+    
+    
+def check_field_changed(entity_obj, original_entity_obj, *, track_field: TrackFields):
+    field = getattr(entity_obj, track_field.value)
+    original_field = getattr(original_entity_obj, track_field.value)
+    return field != original_field
+
+
 def check_deleted(entity_obj, original_entity_obj):
     return entity_obj is None
 
 
 def check_created(entity_obj, original_entity_obj):
     return original_entity_obj is None
-
-
-def check_is_deleted_changed(entity_obj, original_entity_obj):
-    return entity_obj.is_deleted != original_entity_obj.is_deleted
 
 
 def check_text_crawling_status_changed(entity_obj, original_entity_obj):
@@ -26,42 +33,48 @@ def check_text_crawling_status_changed(entity_obj, original_entity_obj):
     )
 
 
-def check_is_blacklisted_changed(entity_obj, original_entity_obj):
-    return entity_obj.is_blacklisted != original_entity_obj.is_blacklisted
-
-
 class ConditionCallbacks:
     check_deleted = check_deleted
     check_created = check_created
-    check_is_deleted_changed = check_is_deleted_changed
     check_text_crawling_status_changed = check_text_crawling_status_changed
-    check_is_blacklisted_changed = check_is_blacklisted_changed
 
 
 created_deleted = [ConditionCallbacks.check_created, ConditionCallbacks.check_deleted]
 all_conditions = created_deleted + [
-    ConditionCallbacks.check_is_deleted_changed,
-    ConditionCallbacks.check_is_blacklisted_changed,
     ConditionCallbacks.check_text_crawling_status_changed,
 ]
 
 
-class EntityManager:
+class EntityManagerClass(type):
+    def __new__(mcs, *args, **kwargs):
+        instance = type.__new__(mcs, *args, **kwargs)
+        if getattr(instance, "track_fields"):
+            instance.condition_functions += [
+                partial(check_field_changed, track_field=track_field)
+                for track_field in instance.track_fields
+            ]
+
+        return instance
+
+
+class EntityManager(metaclass=EntityManagerClass):
     entity_class: type = None
     entity: Entity = None
-    condition_callbacks: List[Callable] = None
+    original_entity_obj: Entity = None
+    condition_functions: List[Callable] = None
+    track_fields: List[TrackFields] = None
 
-    def __init__(self, *, entity: Entity):
+    def __init__(self, *, entity: Entity,original_entity_obj: Entity):
         self.entity = entity
+        self.original_entity_obj = original_entity_obj
 
-    def get_message(self):
-        entity = self.get_notified_entity()
-        return f"{entity.__class__.__name__} {entity.name} has changed"
+    @property
+    def available_entity(self):
+        return self.entity or self.original_entity_obj
 
-    # todo: to avoid potential bugs use the entity from the instance fields.
-    def test_conditions(self, entity_obj: Entity, original_entity_obj: Entity):
+    def test_conditions(self):
         return any(
-            cb(entity_obj, original_entity_obj) for cb in self.condition_callbacks
+            cb(self.entity, self.original_entity_obj) for cb in self.condition_functions
         )
 
     @abstractmethod
@@ -70,66 +83,66 @@ class EntityManager:
 
 
 class EventManager(EntityManager):
-    condition_callbacks = all_conditions
+    condition_functions = all_conditions
+    track_fields = [TrackFields.IS_DELETED, TrackFields.IS_BLACKLISTED]
 
     def get_notified_entity(self) -> CrawlableEntity:
-        return self.entity
+        return self.available_entity
 
 
 class CompanyManager(EntityManager):
-    condition_callbacks = created_deleted + [
-        ConditionCallbacks.check_is_deleted_changed,
+    condition_functions = created_deleted + [
         ConditionCallbacks.check_text_crawling_status_changed,
     ]
+    track_fields = [TrackFields.IS_DELETED]
 
     def get_notified_entity(self) -> CrawlableEntity:
-        return self.entity
+        return self.available_entity
 
 
 class WebinarManager(EntityManager):
-    condition_callbacks = all_conditions
+    condition_functions = all_conditions
+    track_fields = [TrackFields.IS_DELETED, TrackFields.IS_BLACKLISTED]
+
 
     def get_notified_entity(self) -> CrawlableEntity:
-        return self.entity
+        return self.available_entity
 
 
 class ContentItemManager(EntityManager):
-    condition_callbacks = all_conditions
+    condition_functions = all_conditions
+    track_fields = [TrackFields.IS_DELETED, TrackFields.IS_BLACKLISTED]
+
 
     def get_notified_entity(self) -> CrawlableEntity:
-        return self.entity.company
+        return self.available_entity.company
 
 
 class CompanyForEventManager(EntityManager):
-    condition_callbacks = created_deleted + [
-        ConditionCallbacks.check_is_deleted_changed,
-        ConditionCallbacks.check_is_blacklisted_changed,
-    ]
+    condition_functions = created_deleted
+    track_fields = [TrackFields.IS_DELETED, TrackFields.IS_BLACKLISTED]
 
     def get_notified_entity(self) -> CrawlableEntity:
-        return self.entity.event
+        return self.available_entity.event
 
 
 class CompanyForWebinarManager(EntityManager):
-    condition_callbacks = created_deleted + [
-        ConditionCallbacks.check_is_deleted_changed,
-        ConditionCallbacks.check_is_blacklisted_changed,
-    ]
+    condition_functions = created_deleted
+    track_fields = [TrackFields.IS_DELETED, TrackFields.IS_BLACKLISTED]
 
     def get_notified_entity(self) -> CrawlableEntity:
-        return self.entity.webinar
+        return self.available_entity.webinar
 
 
 class CompanyCompetitorManager(EntityManager):
-    condition_callbacks = created_deleted + [
-        ConditionCallbacks.check_is_deleted_changed
-    ]
+    condition_functions = created_deleted
+    track_fields = [TrackFields.IS_DELETED]
 
     def get_notified_entity(self) -> CrawlableEntity:
-        return self.entity.company
+        return self.available_entity.company
 
 
-EntityManagers: Dict[str, EntityManager.__class__] = {
+EntityManagers: Dict[str, EntityManagerClass] = {
     "Event": EventManager,
     "Company": CompanyManager,
     "Webinar": WebinarManager,
