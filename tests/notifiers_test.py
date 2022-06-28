@@ -24,20 +24,21 @@ notification_reducer_with_logs = partial(
 
 @pytest.fixture()
 def db():
-    import os
-
     with open("./project/db.json") as f:
-        db = json.load(f)
-        original_company1 = Company(**db["company1"])
-        original_company2 = Company(**db["company2"])
+        data_to_test = json.load(f)
+        original_company1 = Company(**data_to_test["company1"])
+        original_company2 = Company(**data_to_test["company2"])
         original_content_item1 = ContentItem(
-            company=original_company2, **db["contentItem1"]
+            company=original_company2, **data_to_test["contentItem1"]
         )
-        original_webinar = Webinar(**db["webinar"])
+        original_webinar = Webinar(**data_to_test["webinar"])
 
         original_company_competitor = CompanyCompetitor(
-            company=db.original_company1, competitor=db.original_company2
+            company=original_company1, competitor=original_company2
         )
+
+        company_competitor = deepcopy(original_company_competitor)
+        company_competitor.is_deleted = True
 
         data = dict(
             original_company1=original_company1,
@@ -45,39 +46,29 @@ def db():
             original_content_item1=original_content_item1,
             original_webinar=original_webinar,
             original_company_competitor=original_company_competitor,
+            company_competitor=company_competitor,
         )
-
-        default_logger.info("loaded data")
-
         LocalDb = namedtuple("LocalDb", data)
 
         yield LocalDb(**data)
-
-    default_logger.info("teardown")
 
 
 class TestNotifier:
     def test_company_created(self, db):
         """test company notifier"""
 
-        assert isinstance(
-            notification_reducer_with_logs(
-                entity_obj=None,
-                original_entity_obj=db.original_company1,
-                entity_type="Company",
-            ),
-            Company,
+        assert notification_reducer_with_logs(
+            entity_obj=None,
+            original_entity_obj=db.original_company1,
+            entity_type="Company",
         )
 
     def test_company_deleted(self, db):
         """test company notifier"""
-        assert isinstance(
-            notification_reducer_with_logs(
-                entity_obj=db.original_company1,
-                original_entity_obj=None,
-                entity_type="Company",
-            ),
-            Company,
+        assert notification_reducer_with_logs(
+            entity_obj=db.original_company1,
+            original_entity_obj=None,
+            entity_type="Company",
         )
 
     def test_company_crawling_status(self, db):
@@ -86,71 +77,52 @@ class TestNotifier:
         company1 = deepcopy(db.original_company1)
         company1.crawling_status = CRAWLING_STATUSES.TEXT_UPLOADED
 
-        assert isinstance(
-            notification_reducer_with_logs(
-                entity_obj=company1,
-                original_entity_obj=db.original_company1,
-                entity_type="Company",
-            ),
-            Company,
+        assert notification_reducer_with_logs(
+            entity_obj=company1,
+            original_entity_obj=db.original_company1,
+            entity_type="Company",
         )
 
     def test_company_competitor_is_deleted_field(self, db):
         """test company competitor notifier is deleted field changed."""
-        company_competitor = deepcopy(db.original_company_competitor)
-        company_competitor.is_deleted = True
-        assert isinstance(
-            notification_reducer_with_logs(
-                entity_obj=db.company_competitor,
-                original_entity_obj=db.original_company_competitor,
-                entity_type="CompanyCompetitor",
-            ),
-            Company,
+
+        assert notification_reducer_with_logs(
+            entity_obj=db.company_competitor,
+            original_entity_obj=db.original_company_competitor,
+            entity_type="CompanyCompetitor",
         )
 
     def test_company_competitor_created(self, db):
         """test company competitor notifier created"""
-        assert isinstance(
-            notification_reducer_with_logs(
-                entity_obj=None,
-                original_entity_obj=db.original_company_competitor,
-                entity_type="CompanyCompetitor",
-            ),
-            Company,
+        assert notification_reducer_with_logs(
+            entity_obj=None,
+            original_entity_obj=db.original_company_competitor,
+            entity_type="CompanyCompetitor",
         )
 
     def test_company_competitor_deleted(self, db):
         """test company competitor notifier deleted"""
-        assert isinstance(
-            notification_reducer_with_logs(
-                entity_obj=db.company_competitor,
-                original_entity_obj=None,
-                entity_type="CompanyCompetitor",
-            ),
-            Company,
+        assert notification_reducer_with_logs(
+            entity_obj=db.company_competitor,
+            original_entity_obj=None,
+            entity_type="CompanyCompetitor",
         )
 
     def test_content_item_deleted(self, db):
         """test content item competitor notifier deleted"""
 
-        assert isinstance(
-            notification_reducer_with_logs(
-                entity_obj=db.original_content_item1,
-                original_entity_obj=None,
-                entity_type="ContentItem",
-            ),
-            Company,
+        assert notification_reducer_with_logs(
+            entity_obj=db.original_content_item1,
+            original_entity_obj=None,
+            entity_type="ContentItem",
         )
 
     def test_content_item_created(self, db):
         """test content item competitor notifier"""
-        assert isinstance(
-            notification_reducer_with_logs(
-                entity_obj=None,
-                original_entity_obj=db.original_content_item1,
-                entity_type="ContentItem",
-            ),
-            Company,
+        assert notification_reducer_with_logs(
+            entity_obj=None,
+            original_entity_obj=db.original_content_item1,
+            entity_type="ContentItem",
         )
 
     def test_content_item_is_blacklisted(self, db):
@@ -159,13 +131,10 @@ class TestNotifier:
         content_item1 = deepcopy(db.original_content_item1)
         content_item1.is_blacklisted = True
 
-        assert isinstance(
-            notification_reducer_with_logs(
-                entity_obj=content_item1,
-                original_entity_obj=db.original_content_item1,
-                entity_type="ContentItem",
-            ),
-            Company,
+        assert notification_reducer_with_logs(
+            entity_obj=content_item1,
+            original_entity_obj=db.original_content_item1,
+            entity_type="ContentItem",
         )
 
     def test_webinar_is_deleted_field(self, db):
@@ -173,13 +142,10 @@ class TestNotifier:
 
         webinar = deepcopy(db.original_webinar)
         webinar.is_deleted = True
-        assert isinstance(
-            notification_reducer_with_logs(
-                entity_obj=webinar,
-                original_entity_obj=db.original_webinar,
-                entity_type="Webinar",
-            ),
-            Webinar,
+        assert notification_reducer_with_logs(
+            entity_obj=webinar,
+            original_entity_obj=db.original_webinar,
+            entity_type="Webinar",
         )
 
     def test_company_for_webinar(self, db):
@@ -195,11 +161,8 @@ class TestNotifier:
         company_for_webinar = deepcopy(original_company_for_webinar)
         company_for_webinar.is_deleted = True
 
-        assert isinstance(
-            notification_reducer_with_logs(
-                entity_obj=company_for_webinar,
-                original_entity_obj=original_company_for_webinar,
-                entity_type="CompanyForWebinar",
-            ),
-            Webinar,
+        assert notification_reducer_with_logs(
+            entity_obj=company_for_webinar,
+            original_entity_obj=original_company_for_webinar,
+            entity_type="CompanyForWebinar",
         )
