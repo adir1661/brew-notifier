@@ -10,6 +10,7 @@ Django = "^4.0.5"
 pytest = "^7.1.2"
 brew-common = {version = "^1.4.12", source = "brew"}
 uuid = "^1.30"
+pytest-django = "^4.5.2"
 
 [tool.poetry.dev-dependencies]
 
