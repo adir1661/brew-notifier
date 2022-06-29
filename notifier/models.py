@@ -1,28 +1,15 @@
 from abc import ABC
 from notifier.consts import CRAWLING_STATUSES
-import uuid
+from uuid import uuid4
 from django.db import models
 
-ENTITY_TYPES = [
-    "Event",
-    "Company",
-    "Webinar",
-    "ContentItem",
-    "CompanyForEvent",
-    "CompanyForWebinar",
-    "CompanyCompetitor",
-]
 
-
-class Entity(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4)
+class Entity:
     pass
 
-    class Meta:
-        abstract = True
 
-
-class CrawlableModel(Entity):
+class CrawlableModel(models.Model, Entity):
+    uuid = models.UUIDField(default=uuid4)
     link = models.URLField(max_length=255)
     name = models.CharField(max_length=255)
     crawling_status = models.CharField(
@@ -49,10 +36,7 @@ class Webinar(CrawlableModel):
     language = models.CharField(max_length=255)
 
     class META:
-        unique_together = (
-            "start_date",
-            "link"
-        )
+        unique_together = ("start_date", "link")
 
 
 class Company(CrawlableModel):
@@ -66,26 +50,27 @@ class ContentItem(CrawlableModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
 
     class META:
-        unique_together = (
-            "link"
-        )
+        unique_together = "link"
 
 
-class CompanyForEvent(Entity):
+class CompanyForEvent(models.Model, Entity):
+    uuid = models.UUIDField(default=uuid4)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     is_deleted = models.BooleanField(default=False)
     is_blacklisted = models.BooleanField(default=False)
 
 
-class CompanyForWebinar(Entity):
+class CompanyForWebinar(models.Model, Entity):
+    uuid = models.UUIDField(default=uuid4)
     webinar = models.ForeignKey(Webinar, on_delete=models.CASCADE)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     is_deleted = models.BooleanField(default=False)
     is_blacklisted = models.BooleanField(default=False)
 
 
-class CompanyCompetitor(Entity):
+class CompanyCompetitor(models.Model, Entity):
+    uuid = models.UUIDField(default=uuid4)
     company = models.ForeignKey(
         Company, on_delete=models.CASCADE, related_name="company"
     )
