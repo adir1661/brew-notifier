@@ -4,16 +4,6 @@ from typing import Optional
 
 from notifier.consts import CRAWLING_STATUSES
 
-ENTITY_TYPES = [
-    "Event",
-    "Company",
-    "Webinar",
-    "ContentItem",
-    "CompanyForEvent",
-    "CompanyForWebinar",
-    "CompanyCompetitor",
-]
-
 
 class Entity:
     pass

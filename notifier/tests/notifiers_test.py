@@ -5,7 +5,7 @@ from copy import deepcopy
 from functools import partial
 import pytest
 
-from project.entities import (
+from notifier.models import (
     CompanyCompetitor,
     Company,
     CRAWLING_STATUSES,

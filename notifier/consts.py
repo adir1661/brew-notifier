@@ -20,3 +20,13 @@ class CRAWLING_STATUSES(IntEnum):
     NO_LINKS_IN_PAGE = 15
     UNCRAWLABLE = 16
 
+
+ENTITY_TYPES = [
+    "Event",
+    "Company",
+    "Webinar",
+    "ContentItem",
+    "CompanyForEvent",
+    "CompanyForWebinar",
+    "CompanyCompetitor",
+]

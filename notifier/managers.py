@@ -1,10 +1,10 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC, ABCMeta
 from enum import Enum
 from functools import partial
 from typing import Callable, List, Dict
 
-from project.entities import CRAWLING_STATUSES, Entity, CrawlableEntity
-
+from project.entities import CRAWLING_STATUSES
+from notifier.models import Entity,CrawlableModel
 
 class TrackFields(Enum):
     IS_DELETED = "is_deleted"
@@ -41,7 +41,7 @@ all_conditions = created_deleted + [
 ]
 
 
-class EntityManagerClass(type):
+class EntityManagerClass(ABCMeta):
     def __new__(mcs, *args, **kwargs):
         instance = type.__new__(mcs, *args, **kwargs)
         if getattr(instance, "track_fields"):
@@ -53,7 +53,7 @@ class EntityManagerClass(type):
         return instance
 
 
-class EntityManager(metaclass=EntityManagerClass):
+class EntityManager(ABC,metaclass=EntityManagerClass):
     entity_class: type = None
     entity: Entity = None
     original_entity_obj: Entity = None
@@ -74,7 +74,7 @@ class EntityManager(metaclass=EntityManagerClass):
         )
 
     @abstractmethod
-    def get_notified_entity(self) -> CrawlableEntity:
+    def get_notified_entity(self) -> CrawlableModel:
         raise NotImplementedError()
 
 
@@ -82,7 +82,7 @@ class EventManager(EntityManager):
     condition_functions = all_conditions
     track_fields = [TrackFields.IS_DELETED, TrackFields.IS_BLACKLISTED]
 
-    def get_notified_entity(self) -> CrawlableEntity:
+    def get_notified_entity(self) -> CrawlableModel:
         return self.available_entity
 
 
@@ -92,7 +92,7 @@ class CompanyManager(EntityManager):
     ]
     track_fields = [TrackFields.IS_DELETED]
 
-    def get_notified_entity(self) -> CrawlableEntity:
+    def get_notified_entity(self) -> CrawlableModel:
         return self.available_entity
 
 
@@ -100,7 +100,7 @@ class WebinarManager(EntityManager):
     condition_functions = all_conditions
     track_fields = [TrackFields.IS_DELETED, TrackFields.IS_BLACKLISTED]
 
-    def get_notified_entity(self) -> CrawlableEntity:
+    def get_notified_entity(self) -> CrawlableModel:
         return self.available_entity
 
 
@@ -108,7 +108,7 @@ class ContentItemManager(EntityManager):
     condition_functions = all_conditions
     track_fields = [TrackFields.IS_DELETED, TrackFields.IS_BLACKLISTED]
 
-    def get_notified_entity(self) -> CrawlableEntity:
+    def get_notified_entity(self) -> CrawlableModel:
         return self.available_entity.company
 
 
@@ -116,7 +116,7 @@ class CompanyForEventManager(EntityManager):
     condition_functions = created_deleted
     track_fields = [TrackFields.IS_DELETED, TrackFields.IS_BLACKLISTED]
 
-    def get_notified_entity(self) -> CrawlableEntity:
+    def get_notified_entity(self) -> CrawlableModel:
         return self.available_entity.event
 
 
@@ -124,7 +124,7 @@ class CompanyForWebinarManager(EntityManager):
     condition_functions = created_deleted
     track_fields = [TrackFields.IS_DELETED, TrackFields.IS_BLACKLISTED]
 
-    def get_notified_entity(self) -> CrawlableEntity:
+    def get_notified_entity(self) -> CrawlableModel:
         return self.available_entity.webinar
 
 
@@ -132,7 +132,7 @@ class CompanyCompetitorManager(EntityManager):
     condition_functions = created_deleted
     track_fields = [TrackFields.IS_DELETED]
 
-    def get_notified_entity(self) -> CrawlableEntity:
+    def get_notified_entity(self) -> CrawlableModel:
         return self.available_entity.company
 
 

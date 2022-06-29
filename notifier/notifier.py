@@ -1,7 +1,7 @@
 from typing import Dict, Optional, List
 import logging
 from notifier.managers import EntityManagers, EntityManager
-from project.entities import Entity
+from notifier.models import Entity
 from brew_common.brew_logger.decorators import logger
 
 

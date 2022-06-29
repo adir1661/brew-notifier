@@ -13,12 +13,16 @@ ENTITY_TYPES = [
     "CompanyCompetitor",
 ]
 
-class Entity:
+
+class Entity(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4)
     pass
 
+    class Meta:
+        abstract = True
 
-class CrawlableModel(models.Model, Entity):
+
+class CrawlableModel(Entity):
     link = models.URLField(max_length=255)
     name = models.CharField(max_length=255)
     crawling_status = models.CharField(
@@ -38,14 +42,17 @@ class Event(CrawlableModel):
     description = models.TextField()
     location = models.CharField(max_length=255)
 
-    class META:
-        unique_together = ('field1', 'field2',)
-
 
 class Webinar(CrawlableModel):
     start_date = models.DateTimeField()
     description = models.TextField()
     language = models.CharField(max_length=255)
+
+    class META:
+        unique_together = (
+            "start_date",
+            "link"
+        )
 
 
 class Company(CrawlableModel):
@@ -54,26 +61,31 @@ class Company(CrawlableModel):
 
 
 class ContentItem(CrawlableModel):
-    link = models.CharField(max_length=255,unique=True)
+    link = models.CharField(max_length=255, unique=True)
     snippet = models.CharField(max_length=255)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
 
+    class META:
+        unique_together = (
+            "link"
+        )
 
-class CompanyForEvent(models.Model):
+
+class CompanyForEvent(Entity):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     is_deleted = models.BooleanField(default=False)
     is_blacklisted = models.BooleanField(default=False)
 
 
-class CompanyForWebinar(models.Model):
+class CompanyForWebinar(Entity):
     webinar = models.ForeignKey(Webinar, on_delete=models.CASCADE)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     is_deleted = models.BooleanField(default=False)
     is_blacklisted = models.BooleanField(default=False)
 
 
-class CompanyCompetitor(models.Model):
+class CompanyCompetitor(Entity):
     company = models.ForeignKey(
         Company, on_delete=models.CASCADE, related_name="company"
     )
