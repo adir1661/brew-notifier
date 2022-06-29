@@ -13,7 +13,7 @@ from project.entities import (
     Webinar,
     CompanyForWebinar,
 )
-from project.notifier import notification_reducer
+from notifier.notifier import notification_reducer
 
 default_logger = logging.getLogger("default")
 

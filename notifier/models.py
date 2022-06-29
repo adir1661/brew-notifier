@@ -14,11 +14,12 @@ ENTITY_TYPES = [
 ]
 
 class Entity:
+    uuid = models.UUIDField(default=uuid.uuid4)
     pass
 
 
 class CrawlableModel(models.Model, Entity):
-    link = models.CharField(max_length=255)
+    link = models.URLField(max_length=255)
     name = models.CharField(max_length=255)
     crawling_status = models.CharField(
         choices=[(v.value, v.name) for v in CRAWLING_STATUSES], max_length=255
@@ -32,7 +33,6 @@ class CrawlableModel(models.Model, Entity):
 
 
 class Event(CrawlableModel):
-    uuid = models.UUIDField(default=uuid.uuid4)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
     description = models.TextField()

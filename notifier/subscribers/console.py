@@ -1,7 +1,7 @@
 import logging
 
 from project.entities import Entity
-from project.subscribers.base_subscriber import BaseSubscriber
+from notifier.subscribers.base_subscriber import BaseSubscriber
 
 default_logger = logging.getLogger("default")
 

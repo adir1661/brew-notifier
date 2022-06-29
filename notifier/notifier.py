@@ -1,13 +1,13 @@
 from typing import Dict, Optional, List
 import logging
-from project.managers import EntityManagers, EntityManager
+from notifier.managers import EntityManagers, EntityManager
 from project.entities import Entity
 from brew_common.brew_logger.decorators import logger
 
 
 # should move to app settings.
-from project.subscribers.base_subscriber import SubscriberClass
-from project.subscribers.console import ConsoleSubscriber
+from notifier.subscribers.base_subscriber import SubscriberClass
+from notifier.subscribers.console import ConsoleSubscriber
 
 default_logger = logging.getLogger("default")
 default_logger.setLevel(logging.INFO)

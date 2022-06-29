@@ -3,7 +3,7 @@ import json
 from copy import deepcopy
 
 from project.entities import CompanyCompetitor, Company, CRAWLING_STATUSES, ContentItem, Webinar, CompanyForWebinar
-from project.notifier import notification_reducer
+from notifier.notifier import notification_reducer
 
 
 def main():
