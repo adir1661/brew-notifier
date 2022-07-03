@@ -27,8 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-print('setting run!')
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -127,4 +125,4 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # test runner
-TEST_RUNNER = 'brew_notifier.test_runner.PytestTestRunner'
+TEST_RUNNER = "brew_notifier.test_runner.PytestTestRunner"
