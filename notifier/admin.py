@@ -20,17 +20,6 @@ classes_to_register = [
 ]
 
 
-# def register_model(model_class):
-#     class_name = model_class.__name__ + "Admin"
-#     admin_definition = type(class_name, (admin.ModelAdmin,), {})
-#     admin.site.register(model_class, admin_definition)
-#
-#
-# # add all the classes inside `classes_to_register` to the admin panel dynamically
-# for model_class in classes_to_register:
-#     register_model(model_class)
-
-
 class CompanyForEventAdmin(admin.ModelAdmin):
     pass
 
