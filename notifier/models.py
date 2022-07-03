@@ -45,6 +45,11 @@ class Company(CrawlableModel):
     employees_min = models.PositiveIntegerField(blank=True, default=1)
     employees_max = models.PositiveIntegerField(blank=True, default=1)
 
+    def __str__(self):
+        return f"{self.name} ({self.link})"
+
+    class Meta:
+        verbose_name_plural = 'Companies'
 
 
 class ContentItem(CrawlableModel):

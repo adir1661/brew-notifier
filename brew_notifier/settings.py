@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     # ours
     "notifier.apps.NotifierConfig",
     # 3rd party
+    "rest_framework",
 ]
 
 MIDDLEWARE = [

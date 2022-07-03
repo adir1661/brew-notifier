@@ -30,3 +30,7 @@ ENTITY_TYPES = [
     "CompanyForWebinar",
     "CompanyCompetitor",
 ]
+
+
+class ErrorMessages:
+    COMPANY_URL_NOT_VALID = "Company link not valid.!"
