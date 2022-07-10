@@ -20,6 +20,9 @@ class CrawlableModel(models.Model, Entity):
     is_blacklisted = models.BooleanField(default=False)
     last_crawled = models.DateTimeField(default=None, null=True)
 
+    def __str__(self):
+        return f"{self.name} ({self.link})"
+
     class Meta:
         abstract = True
 
@@ -54,30 +57,51 @@ class Company(CrawlableModel):
 class ContentItem(CrawlableModel):
     link = models.URLField(unique=True)
     snippet = models.CharField(max_length=255, blank=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True)
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="content_item_companies",
+    )
 
 
 class CompanyForEvent(models.Model, Entity):
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="events")
+    event = models.ForeignKey(
+        Event, on_delete=models.CASCADE, related_name="event_companies"
+    )
     company = models.ForeignKey(
-        Company, on_delete=models.CASCADE, related_name="events"
+        Company, on_delete=models.CASCADE, related_name="company_events"
     )
     is_deleted = models.BooleanField(default=False, blank=True)
     is_blacklisted = models.BooleanField(default=False, blank=True)
 
+    def __str__(self):
+        return f"{self.company.name} => {self.event.name}"
+
 
 class CompanyForWebinar(models.Model, Entity):
-    webinar = models.ForeignKey(Webinar, on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    webinar = models.ForeignKey(
+        Webinar, on_delete=models.CASCADE, related_name="webinar_companies"
+    )
+    company = models.ForeignKey(
+        Company, on_delete=models.CASCADE, related_name="company_webinars"
+    )
     is_deleted = models.BooleanField(default=False)
     is_blacklisted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.company.name} => {self.webinar.name}"
 
 
 class CompanyCompetitor(models.Model, Entity):
     company = models.ForeignKey(
-        Company, on_delete=models.CASCADE, related_name="companies"
+        Company, on_delete=models.CASCADE, related_name="competitor_companies"
     )
     competitor = models.ForeignKey(
         Company, on_delete=models.CASCADE, related_name="competitors"
     )
     is_deleted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.company.name} vs. ({self.competitor.name})"
