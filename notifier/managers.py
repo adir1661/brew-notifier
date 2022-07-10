@@ -4,17 +4,12 @@ from functools import partial
 from typing import Callable, List, Dict
 
 from project.entities import CRAWLING_STATUSES
-from notifier.models import Entity,CrawlableModel
+from notifier.models import Entity, CrawlableModel
+
 
 class TrackFields(Enum):
     IS_DELETED = "is_deleted"
     IS_BLACKLISTED = "is_blacklisted"
-
-
-def check_field_changed(entity_obj, original_entity_obj, *, track_field: TrackFields):
-    field = getattr(entity_obj, track_field.value)
-    original_field = getattr(original_entity_obj, track_field.value)
-    return field != original_field
 
 
 class ConditionFunctions:
@@ -34,6 +29,14 @@ class ConditionFunctions:
             in [CRAWLING_STATUSES.TEXT_ANALYZED, CRAWLING_STATUSES.TEXT_UPLOADED]
         )
 
+    @staticmethod
+    def check_field_changed(
+        entity_obj, original_entity_obj, *, track_field: TrackFields
+    ):
+        field = getattr(entity_obj, track_field.value)
+        original_field = getattr(original_entity_obj, track_field.value)
+        return field != original_field
+
 
 created_deleted = [ConditionFunctions.check_created, ConditionFunctions.check_deleted]
 all_conditions = created_deleted + [
@@ -41,19 +44,7 @@ all_conditions = created_deleted + [
 ]
 
 
-class EntityManagerClass(ABCMeta):
-    def __new__(mcs, *args, **kwargs):
-        instance = type.__new__(mcs, *args, **kwargs)
-        if getattr(instance, "track_fields"):
-            instance.condition_functions += [
-                partial(check_field_changed, track_field=track_field)
-                for track_field in instance.track_fields
-            ]
-
-        return instance
-
-
-class EntityManager(ABC,metaclass=EntityManagerClass):
+class EntityManager(ABC):
     entity_class: type = None
     entity: Entity = None
     original_entity_obj: Entity = None
@@ -69,9 +60,15 @@ class EntityManager(ABC,metaclass=EntityManagerClass):
         return self.entity or self.original_entity_obj
 
     def test_conditions(self):
+        test_field = partial(
+            ConditionFunctions.check_field_changed,
+            entity_obj=self.entity,
+            original_entity_obj=self.original_entity_obj,
+        )
+
         return any(
             cb(self.entity, self.original_entity_obj) for cb in self.condition_functions
-        )
+        ) or any(test_field(field) for field in self.track)
 
     @abstractmethod
     def get_notified_entity(self) -> CrawlableModel:
@@ -136,7 +133,7 @@ class CompanyCompetitorManager(EntityManager):
         return self.available_entity.company
 
 
-EntityManagers: Dict[str, EntityManagerClass] = {
+EntityManagers: Dict[str, type] = {
     "Event": EventManager,
     "Company": CompanyManager,
     "Webinar": WebinarManager,

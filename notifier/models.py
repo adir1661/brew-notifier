@@ -26,18 +26,17 @@ class CrawlableModel(models.Model, Entity):
 
 class Event(CrawlableModel):
     start_date = models.DateTimeField()
-    end_date = models.DateTimeField(blank=True)
+    end_date = models.DateTimeField(blank=True, null=True)
     description = models.TextField(blank=True)
     location = models.CharField(max_length=255, blank=True)
 
 
 class Webinar(CrawlableModel):
-    link = models.URLField(max_length=255)
     start_date = models.DateTimeField()
     description = models.TextField(blank=True)
     language = models.CharField(max_length=255, default="en")
 
-    class META:
+    class Meta:
         unique_together = ("start_date", "link")
 
 
@@ -49,21 +48,20 @@ class Company(CrawlableModel):
         return f"{self.name} ({self.link})"
 
     class Meta:
-        verbose_name_plural = 'Companies'
+        verbose_name_plural = "Companies"
 
 
 class ContentItem(CrawlableModel):
-    link = models.CharField(max_length=255, unique=True)
+    link = models.URLField(unique=True)
     snippet = models.CharField(max_length=255, blank=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True)
 
-    class META:
-        unique_together = "link"
-
 
 class CompanyForEvent(models.Model, Entity):
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="events")
+    company = models.ForeignKey(
+        Company, on_delete=models.CASCADE, related_name="events"
+    )
     is_deleted = models.BooleanField(default=False, blank=True)
     is_blacklisted = models.BooleanField(default=False, blank=True)
 
@@ -77,9 +75,9 @@ class CompanyForWebinar(models.Model, Entity):
 
 class CompanyCompetitor(models.Model, Entity):
     company = models.ForeignKey(
-        Company, on_delete=models.CASCADE, related_name="company"
+        Company, on_delete=models.CASCADE, related_name="companies"
     )
     competitor = models.ForeignKey(
-        Company, on_delete=models.CASCADE, related_name="competitor"
+        Company, on_delete=models.CASCADE, related_name="competitors"
     )
     is_deleted = models.BooleanField(default=False)

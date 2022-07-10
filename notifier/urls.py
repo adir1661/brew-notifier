@@ -1,7 +1,8 @@
-from django.urls import path
-
+from django.urls import path, include
+# from notifier.api.urls import urls as api_urls
 from . import views
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    path("api/", include("notifier.api.urls")),
+    path("", views.index, name="index"),
 ]
