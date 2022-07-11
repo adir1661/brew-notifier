@@ -12,6 +12,7 @@ from notifier.models import (
     CompanyCompetitor,
     CompanyForWebinar,
 )
+from notifier.utils import validate_company_url
 
 
 class CompanyForEventSerializer(ModelSerializer):
@@ -32,6 +33,10 @@ class CompanySerializer(ModelSerializer):
         many=True,
         read_only=True,
     )
+
+    def validate_link(self, link):
+        validate_company_url(link, drf=True)
+        return link
 
     class Meta:
         model = Company

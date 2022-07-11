@@ -3,7 +3,7 @@ from enum import Enum
 from functools import partial
 from typing import Callable, List, Dict
 
-from project.entities import CRAWLING_STATUSES
+from notifier.consts import CRAWLING_STATUSES
 from notifier.models import Entity, CrawlableModel
 
 

@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 import requests
 from notifier.consts import ErrorMessages
 
+from notifier.utils import validate_company_url
 from notifier.models import (
     Event,
     Webinar,
@@ -32,13 +33,8 @@ class CompanyForEventAdmin(admin.ModelAdmin):
 class CompanyAddForm(forms.ModelForm):
     def clean_link(self):
         link = self.cleaned_data['link']
-        try:
-            resp = requests.get(link)
-        except requests.exceptions.RequestException as e:
-            raise ValidationError(ErrorMessages.COMPANY_URL_NOT_VALID)
 
-        if not resp.ok:
-            raise ValidationError("Company link not valid.!")
+        validate_company_url(link)
 
         return link
 
