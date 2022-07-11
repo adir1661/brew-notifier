@@ -1,15 +1,12 @@
 from rest_framework.serializers import (
     ModelSerializer,
-    SlugRelatedField,
-    StringRelatedField,
 )
 from notifier.models import (
+    Event,
     Company,
     Webinar,
     ContentItem,
-    Event,
     CompanyForEvent,
-    CompanyCompetitor,
     CompanyForWebinar,
 )
 from notifier.utils import validate_company_url
@@ -35,16 +32,28 @@ class CompanyForWebinarSerializer(ModelSerializer):
 
 
 class CompanySerializer(ModelSerializer):
-    company_events = CompanyForEventSerializer(many=True, read_only=True)
-    company_webinars = CompanyForWebinarSerializer(
+    company_events = CompanyForEventSerializer(
         many=True,
         read_only=True,
+        # required=True,
     )
-    company_content_items = ContentItemSerializer(many=True, read_only=False)
+    company_webinars = CompanyForWebinarSerializer(
+        required=False,
+        many=True,
+        # read_only=True,
+    )
+    company_content_items = ContentItemSerializer(
+        many=True,
+        read_only=False,
+        required=False,
+    )
 
     def validate_link(self, value):
         validate_company_url(value, error_class=ValidationError)
         return value
+
+    def create(self,*args,**kwargs):
+        return super(self.__class__,self).create(*args,**kwargs)
 
     class Meta:
         model = Company
@@ -52,7 +61,9 @@ class CompanySerializer(ModelSerializer):
 
 
 class WebinarSerializer(ModelSerializer):
-    webinar_companies = CompanyForWebinarSerializer(many=True, read_only=True)
+    webinar_companies = CompanyForWebinarSerializer(
+        many=True, read_only=True, required=False
+    )
 
     class Meta:
         model = Webinar

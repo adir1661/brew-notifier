@@ -25,6 +25,9 @@ class CrawlableModel(models.Model, Entity):
     def __str__(self):
         return f"{self.name} ({self.link})"
 
+    def save(self,*args, **kwargs):
+        return super().save(*args,**kwargs)
+
 
     class Meta:
         abstract = True
