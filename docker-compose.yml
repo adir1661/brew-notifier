@@ -1,0 +1,14 @@
+version: '3'
+services:
+  db:
+    image: postgres:11
+    environment:
+      - POSTGRES_USER=brew-notifier
+      - POSTGRES_PASSWORD=devpassword
+    ports:
+      - '5439:5432'
+    volumes:
+      - ./db.sql:/var/lib/postgresql/data
+volumes:
+  db.sql:
+    driver: local

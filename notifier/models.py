@@ -1,9 +1,5 @@
-from abc import ABC
 from notifier.consts import CRAWLING_STATUSES
-from uuid import uuid4
 from django.db import models
-from notifier.notifier import notification_reducer as notify_changes
-from django.core.exceptions import ObjectDoesNotExist
 
 
 class Entity:
@@ -25,16 +21,12 @@ class CrawlableModel(models.Model, Entity):
     def __str__(self):
         return f"{self.name} ({self.link})"
 
-    def save(self,*args, **kwargs):
-        return super().save(*args,**kwargs)
-
-
     class Meta:
         abstract = True
 
 
 class Event(CrawlableModel):
-    start_date = models.DateTimeField()
+    start_date = models.DateTimeField(null=True, blank=True)
     end_date = models.DateTimeField(blank=True, null=True)
     description = models.TextField(blank=True)
     location = models.CharField(max_length=255, blank=True)

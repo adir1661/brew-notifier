@@ -15,27 +15,44 @@ from notifier.notifier import notification_reducer
 
 class DeleteMixin:
     def destroy(self, request, pk=None, **kwargs):
-        entity = self.queryset.get(id=pk)
-        entity.is_deleted = True
-        entity.save()
+        entity = self.get_object()
+        self.perform_destroy(entity)
         return Response(f"{entity.__str__()} field is_deleted is now true", status=200)
 
 
 class NotifierMixin:
     def perform_destroy(self, instance):
-        instance_copy = deepcopy(instance)
-        instance_copy.is_deleted = False
-
+        original_entity = deepcopy(instance)
+        instance.is_deleted = True
+        instance.save()
         notification_reducer(
-            original_entity_obj=instance, entity_obj=instance_copy, entity_type="none"
+            original_entity_obj=original_entity,
+            entity_obj=instance,
+            entity_type=instance.__class__.__name__,
+            options={"log_message": True},
         )
 
-    # def perform_create(self, serializer):
-    #     entity_type = self.serializer_class.Meta.model.__name__
-    #     instance = serializer.save()
-    #     notification_reducer(
-    #         original_entity_obj=None, entity_obj=instance, entity_type=entity_type
-    #     )
+    def perform_create(self, serializer):
+        entity_type = self.serializer_class.Meta.model.__name__
+        entity = serializer.save()
+
+        notification_reducer(
+            original_entity_obj=None,
+            entity_obj=entity,
+            entity_type=entity_type,
+            options={"log_message": True},
+        )
+
+    def perform_update(self, serializer):
+        original_entity = deepcopy(serializer.instance)
+        entity_type = self.serializer_class.Meta.model.__name__
+        entity = serializer.save()
+        notification_reducer(
+            original_entity_obj=original_entity,
+            entity_obj=entity,
+            entity_type=entity_type,
+            options={"log_message": True},
+        )
 
 
 class IsAdminOrApiKey(IsAdminUser):
@@ -48,6 +65,7 @@ class IsAdminOrApiKey(IsAdminUser):
 
 
 class EventViewSet(
+    NotifierMixin,
     DeleteMixin,
     ModelViewSet,
 ):
@@ -56,27 +74,36 @@ class EventViewSet(
     permission_classes = [IsAdminOrApiKey]
 
 
-class CompanyViewSet(DeleteMixin, ModelViewSet):
+class CompanyViewSet(
+    NotifierMixin,
+    DeleteMixin,
+    ModelViewSet,
+):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
     permission_classes = [IsAdminOrApiKey]
 
-    # def perform_destroy(self, instance):
-    #     instance_copy = deepcopy(instance)
-    #     instance_copy.is_deleted = False
-    #
-    #     notification_reducer(
-    #         original_entity_obj=instance, entity_obj=instance_copy, entity_type="none"
-    #     )
+    def perform_destroy(self, instance):
+        instance_copy = deepcopy(instance)
+        instance_copy.is_deleted = False
+
+        notification_reducer(
+            original_entity_obj=instance, entity_obj=instance_copy, entity_type="none"
+        )
 
 
-class WebinarViewSet(DeleteMixin, ModelViewSet):
+class WebinarViewSet(
+    NotifierMixin,
+    DeleteMixin,
+    ModelViewSet,
+):
     queryset = Webinar.objects.all()
     serializer_class = WebinarSerializer
     permission_classes = [IsAdminOrApiKey]
 
 
 class ContentItemViewSet(
+    NotifierMixin,
     DeleteMixin,
     ModelViewSet,
 ):

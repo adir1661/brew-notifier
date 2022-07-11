@@ -72,7 +72,7 @@ class EntityManager(ABC):
 
         return any(
             cb(self.entity, self.original_entity_obj) for cb in self.condition_functions
-        ) or any(test_field(field) for field in self.track)
+        ) or any(test_field(track_field=field) for field in self.track_fields)
 
     @abstractmethod
     def get_notified_entity(self) -> CrawlableModel:

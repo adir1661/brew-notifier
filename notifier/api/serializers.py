@@ -13,6 +13,8 @@ from notifier.utils import validate_company_url
 from rest_framework.exceptions import ValidationError
 
 
+
+
 class ContentItemSerializer(ModelSerializer):
     class Meta:
         model = ContentItem
@@ -52,8 +54,8 @@ class CompanySerializer(ModelSerializer):
         validate_company_url(value, error_class=ValidationError)
         return value
 
-    def create(self,*args,**kwargs):
-        return super(self.__class__,self).create(*args,**kwargs)
+    def create(self, *args, **kwargs):
+        return super(self.__class__, self).create(*args, **kwargs)
 
     class Meta:
         model = Company
@@ -64,6 +66,7 @@ class WebinarSerializer(ModelSerializer):
     webinar_companies = CompanyForWebinarSerializer(
         many=True, read_only=True, required=False
     )
+
 
     class Meta:
         model = Webinar
