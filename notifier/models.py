@@ -65,7 +65,7 @@ class ContentItem(CrawlableModel):
         on_delete=models.CASCADE,
         blank=True,
         null=True,
-        related_name="content_item_companies",
+        related_name="company_content_items",
     )
 
 

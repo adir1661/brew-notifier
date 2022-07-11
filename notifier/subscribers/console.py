@@ -1,6 +1,12 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from notifier.models import Entity
+
 import logging
 
-from project.entities import Entity
 from notifier.subscribers.base_subscriber import BaseSubscriber
 
 default_logger = logging.getLogger("default")
@@ -14,4 +20,6 @@ class ConsoleSubscriber(BaseSubscriber):
             default_logger.info(self.get_message())
 
     def get_message(self):
-        return f"{self.entity.__class__.__name__.lower()} {self.entity.name} has changed"
+        return (
+            f"{self.entity.__class__.__name__.lower()} {self.entity.name} has changed"
+        )

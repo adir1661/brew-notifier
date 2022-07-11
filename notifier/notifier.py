@@ -1,18 +1,20 @@
-from typing import Dict, Optional, List
+from __future__ import annotations
+
+from typing import Dict, Optional, List, TYPE_CHECKING
 import logging
 from notifier.managers import EntityManagers, EntityManager
-from notifier.models import Entity
+if TYPE_CHECKING:
+    from notifier.models import Entity
 from brew_common.brew_logger.decorators import logger
 
 
 # should move to app settings.
-from notifier.subscribers.base_subscriber import SubscriberClass
 from notifier.subscribers.console import ConsoleSubscriber
 
 default_logger = logging.getLogger("default")
 default_logger.setLevel(logging.INFO)
 
-Subscribers: List[SubscriberClass] = [ConsoleSubscriber]
+Subscribers: List[type] = [ConsoleSubscriber]
 
 formatter = logging.Formatter("%(asctime)s:%(name)s:%(message)s")
 

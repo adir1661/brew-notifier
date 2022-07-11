@@ -13,6 +13,13 @@ from notifier.models import (
     CompanyForWebinar,
 )
 from notifier.utils import validate_company_url
+from rest_framework.exceptions import ValidationError
+
+
+class ContentItemSerializer(ModelSerializer):
+    class Meta:
+        model = ContentItem
+        exclude = []
 
 
 class CompanyForEventSerializer(ModelSerializer):
@@ -33,10 +40,11 @@ class CompanySerializer(ModelSerializer):
         many=True,
         read_only=True,
     )
+    company_content_items = ContentItemSerializer(many=True, read_only=False)
 
-    def validate_link(self, link):
-        validate_company_url(link, drf=True)
-        return link
+    def validate_link(self, value):
+        validate_company_url(value, error_class=ValidationError)
+        return value
 
     class Meta:
         model = Company
@@ -56,10 +64,4 @@ class EventSerializer(ModelSerializer):
 
     class Meta:
         model = Event
-        exclude = []
-
-
-class ContentItemSerializer(ModelSerializer):
-    class Meta:
-        model = ContentItem
         exclude = []

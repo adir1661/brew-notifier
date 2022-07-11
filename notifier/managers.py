@@ -1,10 +1,14 @@
+from __future__ import annotations
+
 from abc import abstractmethod, ABC, ABCMeta
 from enum import Enum
 from functools import partial
-from typing import Callable, List, Dict
+from typing import Callable, List, Dict, TYPE_CHECKING
 
 from notifier.consts import CRAWLING_STATUSES
-from notifier.models import Entity, CrawlableModel
+
+if TYPE_CHECKING:
+    from notifier.models import CrawlableModel, Entity
 
 
 class TrackFields(Enum):

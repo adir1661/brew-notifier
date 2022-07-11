@@ -42,13 +42,13 @@ class CompanyViewSet(DeleteMixin, ModelViewSet):
     permission_classes = [IsAdminOrApiKey]
 
 
-class WebinarViewSet(ModelViewSet, DeleteMixin):
+class WebinarViewSet(DeleteMixin,ModelViewSet):
     queryset = Webinar.objects.all()
     serializer_class = WebinarSerializer
     permission_classes = [IsAdminOrApiKey]
 
 
-class ContentItemViewSet(ModelViewSet, DeleteMixin):
+class ContentItemViewSet(DeleteMixin, ModelViewSet, ):
     queryset = ContentItem.objects.all()
     serializer_class = ContentItemSerializer
     permission_classes = [IsAdminOrApiKey]

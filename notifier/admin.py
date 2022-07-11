@@ -34,7 +34,7 @@ class CompanyAddForm(forms.ModelForm):
     def clean_link(self):
         link = self.cleaned_data['link']
 
-        validate_company_url(link)
+        validate_company_url(link, error_class=ValidationError)
 
         return link
 

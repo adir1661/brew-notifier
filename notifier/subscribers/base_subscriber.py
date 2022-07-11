@@ -1,6 +1,11 @@
-from abc import ABC, abstractmethod, ABCMeta
+from __future__ import annotations
 
-from project.entities import Entity
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from notifier.models import Entity
+
+from abc import ABC, abstractmethod, ABCMeta
 
 
 class BaseSubscriber(ABC):
