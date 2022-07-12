@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
+import logging
 from pathlib import Path
 import environ
 import os
@@ -145,3 +145,28 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # test runner
 TEST_RUNNER = "brew_notifier.test_runner.PytestTestRunner"
+
+# defining the logger
+
+default_logger = logging.getLogger("default")
+default_logger.setLevel(logging.INFO)
+
+CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5673'
+
+
+
+
+formatter = logging.Formatter("%(asctime)s:%(name)s:%(message)s")
+
+STREAM = False
+FILE = True
+
+if FILE:
+    file_handler = logging.FileHandler("./notifier.log")
+    file_handler.setFormatter(formatter)
+    default_logger.addHandler(file_handler)
+
+if STREAM:
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(formatter)
+    default_logger.addHandler(stream_handler)

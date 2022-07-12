@@ -12,24 +12,8 @@ from brew_common.brew_logger.decorators import logger
 from notifier.subscribers.console import ConsoleSubscriber
 
 default_logger = logging.getLogger("default")
-default_logger.setLevel(logging.INFO)
 
 Subscribers: List[type] = [ConsoleSubscriber]
-
-formatter = logging.Formatter("%(asctime)s:%(name)s:%(message)s")
-
-STREAM = False
-FILE = True
-
-if FILE:
-    file_handler = logging.FileHandler("./notifier.log")
-    file_handler.setFormatter(formatter)
-    default_logger.addHandler(file_handler)
-
-if STREAM:
-    stream_handler = logging.StreamHandler()
-    stream_handler.setFormatter(formatter)
-    default_logger.addHandler(stream_handler)
 
 
 @logger(logger_name="default", log_level="error", log_exit=True, log_params=True)

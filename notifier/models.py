@@ -32,6 +32,8 @@ class Event(CrawlableModel):
     location = models.CharField(max_length=255, blank=True)
 
 
+
+
 class Webinar(CrawlableModel):
     start_date = models.DateTimeField()
     description = models.TextField(blank=True)
