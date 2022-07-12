@@ -3,6 +3,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 import requests
 from notifier.consts import ErrorMessages
+from notifier.tasks import crawl_event as celery_crawl_event, connect_company_to_event
 
 from notifier.utils import validate_company_url
 from notifier.models import (
@@ -32,7 +33,7 @@ class CompanyForEventAdmin(admin.ModelAdmin):
 
 class CompanyAddForm(forms.ModelForm):
     def clean_link(self):
-        link = self.cleaned_data['link']
+        link = self.cleaned_data["link"]
 
         validate_company_url(link, error_class=ValidationError)
 
@@ -51,13 +52,15 @@ class CompanyForEventInline(admin.TabularInline):
     model = CompanyForEvent
 
 
+
+
 class CompanyForWebinarInline(admin.TabularInline):
     model = CompanyForWebinar
 
 
 class CompanyAdmin(admin.ModelAdmin):
     form = CompanyAddForm
-    search_fields = ('name', 'link')
+    search_fields = ("name", "link")
 
     inlines = [CompanyForEventInline, CompanyForWebinarInline]
     readonly_fields = ("last_crawled", "crawling_status")
@@ -66,6 +69,30 @@ class CompanyAdmin(admin.ModelAdmin):
 class EventAdmin(admin.ModelAdmin):
     inlines = [CompanyForEventInline]
     readonly_fields = ("last_crawled", "crawling_status")
+
+    actions = ["crawl_event"]
+
+    @admin.action()
+    def crawl_event(self, request, queryset):
+        for item in queryset:
+            celery_crawl_event.apply_async(
+                kwargs={"event_id": item.id}, queue="regular"
+            )
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for instance in instances:
+            connect_company_to_event.apply_async(
+                kwargs=dict(
+                    event_id=instance.event.id, company_id=instance.company.id
+                ),
+            )
+            instance.save()
+        formset.save_m2m()
+
+    def save_model(self, request, obj, form, change):
+        obj.save()
+        celery_crawl_event.apply(kwargs={"event_id": obj.id})
 
 
 class WebinarAdmin(admin.ModelAdmin):

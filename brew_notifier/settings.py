@@ -13,6 +13,7 @@ import logging
 from pathlib import Path
 import environ
 import os
+from kombu import Queue
 
 env = environ.Env(
     # set casting, default value
@@ -146,14 +147,19 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # test runner
 TEST_RUNNER = "brew_notifier.test_runner.PytestTestRunner"
 
+
+# celery
+CELERY_BROKER_URL = "amqp://guest:guest@localhost:5672"
+CELERY_TASK_QUEUES = [Queue("regular"), Queue("high-priority")]
+CELERY_TASK_ROUTES = {
+    "notifier.tasks.crawl_event": "regular",
+    "notifier.tasks.connect_company_to_event": "high-priority",
+}
+
 # defining the logger
 
 default_logger = logging.getLogger("default")
 default_logger.setLevel(logging.INFO)
-
-CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5673'
-
-
 
 
 formatter = logging.Formatter("%(asctime)s:%(name)s:%(message)s")
