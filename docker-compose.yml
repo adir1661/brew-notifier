@@ -1,8 +1,10 @@
 version: '3'
+
 services:
   db:
     image: postgres:11
     environment:
+      - POSTGRES_DB=brew-notifier
       - POSTGRES_USER=brew-notifier
       - POSTGRES_PASSWORD=devpassword
     ports:
@@ -15,10 +17,34 @@ services:
     ports:
       - 5672:5672
       - 15672:15672
+
+  notifier-celery:
+    image: notifier
+    container_name: notifier-celery-server
+    entrypoint: ./celery-entrypoint.sh
+    depends_on:
+      - rabbitmq
+
+  notifier-web:
+    image: notifier
+    container_name: notifier-django-server
+    expose:
+      - 8000
+    entrypoint: ./django-entrypoint.sh
+    links:
+      - db
+    depends_on:
+      - db
+      - notifier-celery
+  nginx:
+    build: ./nginx
+    ports:
+      - 8000:80
     volumes:
-      - ~/rabbitmq/data/:/var/lib/rabbitmq/
-    networks:
-      - rabbitmq_net
+      - ./static:/static
+
+    depends_on:
+      - notifier-web
 
 volumes:
   db.sql:

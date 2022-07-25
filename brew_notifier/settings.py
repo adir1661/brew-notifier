@@ -21,6 +21,10 @@ env = environ.Env(
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
 DB_NAME = env("DB_NAME")
 DB_USER = env("DB_USER")
 DB_PASSWORD = env("DB_PASSWORD")
@@ -39,7 +43,15 @@ SECRET_KEY = "django-insecure-n^)7z)s)w5qiu_w85dtmud@#-a0-h6x)5n@#@#ljvvv79z!c0u
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["0.0.0.0", "localhost"]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://0.0.0.0:8000",
+    "https://localhost:8000",
+    "https://0.0.0.0:8000",
+]
+
 
 # Application definition
 
@@ -101,7 +113,6 @@ DATABASES = {
     }
 }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
@@ -136,7 +147,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
-STATIC_URL = "static/"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -148,7 +161,8 @@ TEST_RUNNER = "brew_notifier.test_runner.PytestTestRunner"
 
 
 # celery
-CELERY_BROKER_URL = "amqp://guest:guest@localhost:5672"
+CELERY_BROKER_URL = "amqp://guest:guest@rabbitmq:5672/"
+
 CELERY_TASK_QUEUES = [Queue("regular"), Queue("high-priority")]
 CELERY_TASK_ROUTES = {
     "notifier.tasks.crawl_event": "regular",

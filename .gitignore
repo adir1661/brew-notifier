@@ -3,6 +3,8 @@
 .idea
 dist
 .env
+static
+
 notifier.log
 
 *.sqlite3
