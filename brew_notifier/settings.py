@@ -13,23 +13,31 @@ import logging
 import environ
 import os
 from kombu import Queue
+from kombu.utils.url import safequote
 
-env = environ.Env(
-    # set casting, default value
-    DEBUG=(bool, False)
-)
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+FRAMEWORK = os.environ.get("FRAMEWORK") if os.environ.get("FRAMEWORK") else 'dev'
+IS_ZAPPA = FRAMEWORK.lower() == "zappa"
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+if not IS_ZAPPA:
+    env = environ.Env(
+        # set casting, default value
+        DEBUG=(bool, False),
+    )
+    environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+else:
+    envs = {k: (type(val), val) for k, val in os.environ.items()}
+    env = environ.Env(**envs)
+    print("a Zappa deployment.")
 
 
-DB_NAME = env("DB_NAME")
-DB_USER = env("DB_USER")
-DB_PASSWORD = env("DB_PASSWORD")
-DB_HOST = env("DB_HOST")
-DB_PORT = env("DB_PORT")
+
+DB_NAME = env.str("DB_NAME")
+DB_USER = env.str("DB_USER")
+DB_PASSWORD = env.str("DB_PASSWORD")
+DB_HOST = env.str("DB_HOST")
+DB_PORT = env.int("DB_PORT")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
@@ -43,7 +51,11 @@ SECRET_KEY = "django-insecure-n^)7z)s)w5qiu_w85dtmud@#-a0-h6x)5n@#@#ljvvv79z!c0u
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["0.0.0.0", "localhost"]
+ALLOWED_HOSTS = [
+    "0.0.0.0",
+    "localhost",
+    "sycs1nbhvj.execute-api.us-east-1.amazonaws.com",
+]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
@@ -51,7 +63,6 @@ CSRF_TRUSTED_ORIGINS = [
     "https://localhost:8000",
     "https://0.0.0.0:8000",
 ]
-
 
 # Application definition
 
@@ -70,6 +81,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -97,7 +109,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "brew_notifier.wsgi.application"
-
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
@@ -131,7 +142,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -143,13 +153,14 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+STATIC_URL = ('/notifier' if IS_ZAPPA else '') + "/static/"
+WHITENOISE_STATIC_PREFIX = '/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -159,10 +170,18 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # test runner
 TEST_RUNNER = "brew_notifier.test_runner.PytestTestRunner"
 
-
+aws_access_key = safequote(env("AWS_ACCESS_KEY_ID"))
+aws_secret_key = safequote(env("AWS_SECRET_ACCESS_KEY"))
 # celery
-CELERY_BROKER_URL = "amqp://guest:guest@rabbitmq:5672/"
-
+CELERY_accept_content = ["application/json"]
+CELERY_task_serializer = "json"
+CELERY_BROKER_URL = f"sqs://{aws_access_key}:{aws_secret_key}@"
+# CELERY_BROKER_TRANSPORT_OPTIONS = {
+#     "region": "ap-southeast-1",
+#     'visibility_timeout': 7200,
+#     'polling_interval': 1
+# }
+CELERY_result_backend = None
 CELERY_TASK_QUEUES = [Queue("regular"), Queue("high-priority")]
 CELERY_TASK_ROUTES = {
     "notifier.tasks.crawl_event": "regular",
@@ -174,18 +193,17 @@ CELERY_TASK_ROUTES = {
 default_logger = logging.getLogger("default")
 default_logger.setLevel(logging.INFO)
 
-
 formatter = logging.Formatter("%(asctime)s:%(name)s:%(message)s")
 
 STREAM = False
 FILE = True
 
-if FILE:
+if FILE and not IS_ZAPPA:
     file_handler = logging.FileHandler("./notifier.log")
     file_handler.setFormatter(formatter)
     default_logger.addHandler(file_handler)
 
-if STREAM:
+if STREAM or not IS_ZAPPA:
     stream_handler = logging.StreamHandler()
     stream_handler.setFormatter(formatter)
     default_logger.addHandler(stream_handler)

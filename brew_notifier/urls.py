@@ -16,8 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+from brew_notifier.views import homePageView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('notifier/', include('notifier.urls')),
-
+    path('', homePageView, name='home'),
 ]
+

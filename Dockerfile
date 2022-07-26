@@ -11,10 +11,14 @@ ENV PYTHONFAULTHANDLER=1 \
 
 RUN apt-get update -y && apt-get install -y wget \
     git \
-     python3-dev
-RUN python -m pip install --upgrade pip
+    python3-dev \
+    python-psycopg2 \
+    libssl-dev \
+    libcurl4-openssl-dev
 
+RUN python -m pip install --upgrade pip
 RUN pip install "poetry==$POETRY_VERSION"
+
 COPY poetry.lock pyproject.toml ./
 
 ARG CODEARTIFACT_AUTH_TOKEN
@@ -39,6 +43,5 @@ RUN chmod 755 './celery-entrypoint.sh' \
 
 RUN wget -O /usr/local/bin/tini "https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini" \
   && chmod 755 /usr/local/bin/tini && tini --version
-
 
 EXPOSE 8000
