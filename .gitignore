@@ -8,3 +8,6 @@ static
 notifier.log
 
 *.sqlite3
+db.sql/
+
+zappa_settings.json
